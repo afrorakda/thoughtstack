@@ -67,7 +67,7 @@
             color: var(--main) !important;
             box-sizing: border-box;
             outline: none;
-            padding: 12px 40px 12px 12px; /* clrボタン用に右パディング */
+            padding: 12px 40px 12px 12px;
             -webkit-appearance: none;
             -webkit-text-fill-color: var(--main) !important;
             opacity: 1 !important;
@@ -77,7 +77,7 @@
             height: 160px;
             resize: none;
             line-height: 1.5;
-            padding-right: 12px; /* textareaのclrは右上に配置 */
+            padding-right: 12px;
         }
 
         input::placeholder, textarea::placeholder {
@@ -85,7 +85,6 @@
             -webkit-text-fill-color: var(--gray-text) !important;
         }
 
-        /* Clear Buttons */
         .clr-btn {
             position: absolute;
             right: 12px;
@@ -117,19 +116,21 @@
             font-weight: 800;
             font-size: 1rem;
             cursor: pointer;
+            transition: all 0.2s;
         }
+        .save-btn.success { background: #4caf50; }
 
-        /* Search Section */
-        .search-container {
-            position: relative;
+        /* Search & Edit Bar */
+        .search-area {
+            display: flex;
+            gap: 10px;
             margin-bottom: 20px;
-            transition: transform 0.3s;
+            align-items: center;
         }
-        .searching .search-container { margin-top: 10px; }
-
+        .search-container { flex: 1; position: relative; }
         .search-box {
             width: 100%;
-            padding: 15px 45px 15px 15px;
+            padding: 15px 40px 15px 15px;
             border: 2px solid var(--accent);
             border-radius: var(--radius);
             background: #fff;
@@ -137,6 +138,19 @@
             font-weight: 700;
             box-sizing: border-box;
         }
+
+        .edit-toggle {
+            background: var(--accent);
+            border: none;
+            padding: 15px 12px;
+            border-radius: var(--radius);
+            font-size: 0.75rem;
+            font-weight: 800;
+            cursor: pointer;
+            color: var(--main);
+            white-space: nowrap;
+        }
+        .edit-toggle.active { background: var(--main); color: #fff; }
 
         /* List Section */
         .log-list {
@@ -156,7 +170,7 @@
             box-shadow: 0 2px 8px rgba(0,0,0,0.03);
             transition: all 0.3s ease;
         }
-        .log-card.copied { border-color: var(--main); background: #f9f9f9; transform: scale(1.02); }
+        .log-card.copied { border-color: var(--main); background: #f9f9f9; transform: scale(1.01); }
 
         .log-date { font-size: 0.7rem; color: #aaa; font-weight: 700; text-transform: uppercase; margin-bottom: 5px; }
         .log-title { font-size: 1.1rem; font-weight: 800; margin-bottom: 8px; display: block; }
@@ -174,14 +188,21 @@
             color: var(--main);
         }
         .del-btn { 
-            background: transparent; 
-            color: #ddd; 
-            border: 1px solid #eee;
-            font-size: 0.7rem;
+            display: none;
+            background: #fff; 
+            color: #ff5252; 
+            border: 1px solid #ff5252;
         }
-        .del-btn:active { color: #f88; border-color: #f88; }
+        .edit-mode .del-btn { display: inline-block; }
 
         .empty-msg { padding: 40px 0; color: #ccc; font-weight: 600; font-size: 0.9rem; }
+
+        .backup-section { display: none; margin-top: 20px; }
+        .edit-mode + .backup-section { display: block; }
+        .backup-btn {
+            background: transparent; border: 1px dashed #ccc; color: #999;
+            padding: 10px; border-radius: var(--radius); width: 100%; font-size: 0.75rem; font-weight: 700; cursor: pointer;
+        }
 
         /* Footer & Common */
         footer { margin-top: 60px; font-size: 11px; color: #aaa; line-height: 1.8; }
@@ -216,26 +237,33 @@
     <p class="subtitle">Quick log for books, movies, and ideas.</p>
 
     <div class="input-section">
-        <div class="input-group" id="titleGroup">
+        <div class="input-group">
             <input type="text" id="noteTitle" placeholder="Title (Book, Movie, Idea...)" maxlength="100" oninput="toggleClr(this)">
             <button class="clr-btn" onclick="clearInp('noteTitle')">×</button>
         </div>
-        <div class="input-group" id="contentGroup">
+        <div class="input-group">
             <textarea id="noteContent" placeholder="Your thoughts... (Keep it short)" oninput="toggleClr(this)"></textarea>
             <button class="clr-btn textarea-clr" onclick="clearInp('noteContent')">×</button>
         </div>
-        <button class="save-btn" onclick="saveNote()">Save Memory</button>
+        <button class="save-btn" id="saveBtn" onclick="saveNote()">Save Memory</button>
     </div>
 
-    <div class="search-container">
-        <div class="input-group has-clr" id="searchGroup">
-            <input type="text" class="search-box" id="searchInput" placeholder="Search logs..." 
-                   onfocus="setSearching(true)" onblur="checkBlur(event)" oninput="filterNotes(); toggleClr(this)">
-            <button class="clr-btn" id="searchClr" onclick="clearSearch()">×</button>
+    <div class="search-area">
+        <div class="search-container">
+            <div class="input-group" id="searchGroup">
+                <input type="text" class="search-box" id="searchInput" placeholder="Search..." 
+                       onfocus="setSearching(true)" onblur="checkBlur(event)" oninput="filterNotes(); toggleClr(this)">
+                <button class="clr-btn" id="searchClr" onclick="clearSearch()">×</button>
+            </div>
         </div>
+        <button class="edit-toggle" id="editToggle" onclick="toggleEditMode()">Edit</button>
     </div>
 
     <div class="log-list" id="logList"></div>
+
+    <div class="backup-section" id="backupArea">
+        <button class="backup-btn" onclick="downloadBackup()">Download Backup (JSON)</button>
+    </div>
 
     <div class="footer-btns">
         <a href="https://ko-fi.com/afrorakda" target="_blank" class="kofi-btn">☕️buy me a coffee</a>
@@ -260,6 +288,7 @@
 
 <script>
     let notes = JSON.parse(localStorage.getItem('thoughtStack_data') || '[]');
+    let isEditMode = false;
     const container = document.getElementById('mainContainer');
     const logList = document.getElementById('logList');
 
@@ -283,8 +312,7 @@
     }
 
     function checkBlur(e) {
-        // clrボタンをクリックした時はモード解除しない
-        if (e.relatedTarget && e.relatedTarget.classList.contains('clr-btn')) return;
+        if (e.relatedTarget && (e.relatedTarget.classList.contains('clr-btn') || e.relatedTarget.id === 'editToggle')) return;
         setSearching(false);
     }
 
@@ -296,14 +324,46 @@
         container.classList.remove('searching');
     }
 
+    function toggleEditMode() {
+        isEditMode = !isEditMode;
+        const btn = document.getElementById('editToggle');
+        const backup = document.getElementById('backupArea');
+        if (isEditMode) {
+            btn.classList.add('active');
+            btn.innerText = 'Done';
+            logList.classList.add('edit-mode');
+            backup.style.display = 'block';
+        } else {
+            btn.classList.remove('active');
+            btn.innerText = 'Edit';
+            logList.classList.remove('edit-mode');
+            backup.style.display = 'none';
+        }
+    }
+
+    function getRelativeTime(timestamp) {
+        const now = Date.now();
+        const diff = now - timestamp;
+        const seconds = Math.floor(diff / 1000);
+        const minutes = Math.floor(seconds / 60);
+        const hours = Math.floor(minutes / 60);
+
+        if (seconds < 60) return 'Just now';
+        if (minutes < 60) return `${minutes}m ago`;
+        if (hours < 24) return `${hours}h ago`;
+        
+        return new Date(timestamp).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: '2-digit' });
+    }
+
     function saveNote() {
         const tEl = document.getElementById('noteTitle');
         const cEl = document.getElementById('noteContent');
+        const saveBtn = document.getElementById('saveBtn');
         if (!tEl.value.trim() && !cEl.value.trim()) return;
 
         const newNote = {
             id: Date.now(),
-            date: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: '2-digit' }),
+            timestamp: Date.now(),
             title: tEl.value.trim() || 'Untitled',
             content: cEl.value.trim()
         };
@@ -311,19 +371,31 @@
         notes.unshift(newNote);
         localStorage.setItem('thoughtStack_data', JSON.stringify(notes));
 
+        // Feedback
+        saveBtn.innerText = 'Stacked!';
+        saveBtn.classList.add('success');
+        setTimeout(() => {
+            saveBtn.innerText = 'Save Memory';
+            saveBtn.classList.remove('success');
+        }, 1000);
+
         tEl.value = ''; cEl.value = '';
-        document.getElementById('titleGroup').classList.remove('has-content');
-        document.getElementById('contentGroup').classList.remove('has-content');
+        tEl.parentElement.classList.remove('has-content');
+        cEl.parentElement.classList.remove('has-content');
         renderNotes();
     }
 
     function renderNotes() {
-        const query = document.getElementById('searchInput').value.toLowerCase();
+        const query = document.getElementById('searchInput').value.toLowerCase().split(' ').filter(t => t);
         logList.innerHTML = '';
-        const filtered = notes.filter(n => n.title.toLowerCase().includes(query) || n.content.toLowerCase().includes(query));
+        
+        const filtered = notes.filter(n => {
+            const target = (n.title + n.content).toLowerCase();
+            return query.every(word => target.includes(word));
+        });
 
         if (filtered.length === 0) {
-            logList.innerHTML = `<div class="empty-msg">${query ? 'No results found.' : 'No memories stacked yet.'}</div>`;
+            logList.innerHTML = `<div class="empty-msg">${notes.length === 0 ? 'No memories stacked yet.' : 'No results found.'}</div>`;
             return;
         }
 
@@ -332,11 +404,11 @@
             card.className = 'log-card';
             card.id = `card-${note.id}`;
             card.innerHTML = `
-                <div class="log-date">${note.date}</div>
+                <div class="log-date">${getRelativeTime(note.timestamp || note.id)}</div>
                 <strong class="log-title">${note.title}</strong>
                 <div class="log-content">${note.content}</div>
                 <div class="card-actions">
-                    <button class="action-btn" onclick="copyNote(${note.id})">Copy</button>
+                    <button class="action-btn" onclick="copyNote(${note.id}, this)">Copy</button>
                     <button class="action-btn del-btn" onclick="deleteNote(${note.id})">Del</button>
                 </div>
             `;
@@ -344,14 +416,14 @@
         });
     }
 
-    function copyNote(id) {
+    function copyNote(id, btn) {
         const note = notes.find(n => n.id === id);
-        const text = `[${note.title}] (${note.date})\n${note.content}`;
+        const dateStr = new Date(note.timestamp || note.id).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: '2-digit' });
+        const text = `[${note.title}] (${dateStr})\n${note.content}`;
         const card = document.getElementById(`card-${id}`);
         
         navigator.clipboard.writeText(text).then(() => {
             card.classList.add('copied');
-            const btn = event.target;
             const oldText = btn.innerText;
             btn.innerText = 'Copied!';
             setTimeout(() => {
@@ -367,6 +439,16 @@
             localStorage.setItem('thoughtStack_data', JSON.stringify(notes));
             renderNotes();
         }
+    }
+
+    function downloadBackup() {
+        const data = JSON.stringify(notes, null, 2);
+        const blob = new Blob([data], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `thoughtstack_backup_${new Date().toISOString().split('T')[0]}.json`;
+        a.click();
     }
 
     function filterNotes() { renderNotes(); }
