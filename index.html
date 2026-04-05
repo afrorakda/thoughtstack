@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ThoughtStack</title>
+    
+    <link rel="icon" href="image_72.png">
+    <link rel="apple-touch-icon" href="image_72.png">
+
+    <style>
+        :root {
+            --main: #333;
+            --bg: #fff;
+            --accent: #eee;
+            --input-bg: #fafafa;
+            --radius: 15px;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg);
+            color: var(--main);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 420px;
+            padding: 40px 20px;
+            box-sizing: border-box;
+            text-align: center;
+        }
+
+        h1 { font-size: 1.8rem; font-weight: 800; margin-bottom: 8px; letter-spacing: -1px; }
+        .subtitle { font-size: 0.85rem; color: #666; font-weight: 500; margin-bottom: 30px; }
+
+        /* Input Section */
+        .input-section {
+            background: var(--input-bg);
+            padding: 20px;
+            border-radius: var(--radius);
+            margin-bottom: 40px;
+            text-align: left;
+        }
+
+        input, textarea {
+            width: 100%;
+            border: 2px solid var(--accent);
+            border-radius: var(--radius);
+            background: #fff;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--main) !important;
+            box-sizing: border-box;
+            outline: none;
+            margin-bottom: 12px;
+            padding: 12px;
+            -webkit-appearance: none;
+            -webkit-text-fill-color: var(--main) !important;
+            opacity: 1 !important;
+        }
+
+        textarea {
+            height: 160px; /* 約10行固定 */
+            resize: none;
+            line-height: 1.5;
+        }
+
+        .save-btn {
+            width: 100%;
+            background: var(--main);
+            color: #fff;
+            border: none;
+            padding: 15px;
+            border-radius: var(--radius);
+            font-weight: 800;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        .save-btn:active { opacity: 0.8; }
+
+        /* Search Section */
+        .search-container {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        .search-box {
+            width: 100%;
+            padding: 12px 15px;
+            border: 1px solid var(--accent);
+            border-radius: var(--radius);
+            background: #fff;
+            font-size: 0.9rem;
+            font-weight: 600;
+            box-sizing: border-box;
+        }
+
+        /* List Section */
+        .log-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            text-align: left;
+        }
+
+        .log-card {
+            background: #fff;
+            border: 1px solid #eee;
+            border-radius: var(--radius);
+            padding: 18px;
+            position: relative;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+        }
+
+        .log-date { font-size: 0.7rem; color: #aaa; font-weight: 700; text-transform: uppercase; margin-bottom: 5px; }
+        .log-title { font-size: 1.1rem; font-weight: 800; margin-bottom: 8px; display: block; }
+        .log-content { font-size: 0.9rem; color: #555; line-height: 1.5; white-space: pre-wrap; margin-bottom: 15px; }
+
+        .card-actions { display: flex; gap: 10px; justify-content: flex-end; }
+        .action-btn {
+            background: var(--accent);
+            border: none;
+            padding: 6px 12px;
+            border-radius: 10px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            cursor: pointer;
+            color: var(--main);
+        }
+        .delete-btn { background: #fff; color: #fcc; border: 1px solid #fcc; }
+
+        /* Footer & Common UI */
+        footer { margin-top: 60px; font-size: 11px; color: #aaa; line-height: 1.8; }
+        footer a { color: inherit; text-decoration: none; }
+        .footer-btns { margin-top: 30px; }
+        .kofi-btn {
+            display: inline-block; background: var(--main); color: #fff;
+            padding: 12px 25px; border-radius: var(--radius);
+            text-decoration: none; font-weight: bold; font-size: 14px; margin-bottom: 12px;
+        }
+        .home-btn {
+            display: block; width: 60%; margin: 0 auto; background: var(--accent);
+            color: var(--main); border: none; padding: 10px;
+            border-radius: var(--radius); font-weight: 700; font-size: 13px; cursor: pointer;
+        }
+
+        #modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6); align-items: center; justify-content: center; z-index: 100;
+        }
+        .modal-content {
+            background: #fff; width: 85%; max-width: 320px; padding: 30px;
+            border-radius: var(--radius); text-align: left; position: relative;
+        }
+        .close-x { position: absolute; top: 15px; right: 20px; font-size: 20px; color: #ccc; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>ThoughtStack</h1>
+    <p class="subtitle">Quick log for books, movies, and ideas.</p>
+
+    <div class="input-section">
+        <input type="text" id="noteTitle" placeholder="Title (Book, Movie, Project...)" maxlength="100">
+        <textarea id="noteContent" placeholder="Your thoughts... (Keep it short)"></textarea>
+        <button class="save-btn" onclick="saveNote()">Save Memory</button>
+    </div>
+
+    <div class="search-container">
+        <input type="text" class="search-box" id="searchInput" placeholder="Search logs..." oninput="filterNotes()">
+    </div>
+
+    <div class="log-list" id="logList"></div>
+
+    <div class="footer-btns">
+        <a href="https://ko-fi.com/afrorakda" target="_blank" class="kofi-btn">☕️buy me a coffee</a>
+        <button class="home-btn" onclick="showModal()">Add to Home Screen</button>
+    </div>
+
+    <footer>
+        <div>No login / No tracking / No ads / Browser only</div>
+        <div><a href="https://afrorakda.com/privacy/">Privacy Policy</a> / afrorakda © 2026</div>
+    </footer>
+</div>
+
+<div id="modal" onclick="hideModal()">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <span class="close-x" onclick="hideModal()">×</span>
+        <h3>📱 Install</h3>
+        <p>Add to your home screen.</p>
+        <p>🍏 <strong>iPhone (Safari):</strong><br>Tap Share, then Add to Home Screen.</p>
+        <p>🤖 <strong>Android (Chrome):</strong><br>Tap Menu (⋮), then Add to Home Screen.</p>
+    </div>
+</div>
+
+<script>
+    let notes = JSON.parse(localStorage.getItem('thoughtStack_data') || '[]');
+
+    const titleInput = document.getElementById('noteTitle');
+    const contentInput = document.getElementById('noteContent');
+    const logList = document.getElementById('logList');
+    const searchInput = document.getElementById('searchInput');
+
+    function saveNote() {
+        const title = titleInput.value.trim();
+        const content = contentInput.value.trim();
+
+        if (!title && !content) return;
+
+        const newNote = {
+            id: Date.now(),
+            date: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: '2-digit' }),
+            title: title || 'Untitled',
+            content: content
+        };
+
+        notes.unshift(newNote);
+        localStorage.setItem('thoughtStack_data', JSON.stringify(notes));
+
+        titleInput.value = '';
+        contentInput.value = '';
+        renderNotes();
+    }
+
+    function renderNotes(filter = '') {
+        logList.innerHTML = '';
+        const filtered = notes.filter(n => 
+            n.title.toLowerCase().includes(filter.toLowerCase()) || 
+            n.content.toLowerCase().includes(filter.toLowerCase())
+        );
+
+        filtered.forEach(note => {
+            const card = document.createElement('div');
+            card.className = 'log-card';
+            card.innerHTML = `
+                <div class="log-date">${note.date}</div>
+                <strong class="log-title">${note.title}</strong>
+                <div class="log-content">${note.content}</div>
+                <div class="card-actions">
+                    <button class="action-btn" onclick="copyNote(${note.id}, this)">Copy</button>
+                    <button class="action-btn delete-btn" onclick="deleteNote(${note.id})">Del</button>
+                </div>
+            `;
+            logList.appendChild(card);
+        });
+    }
+
+    function copyNote(id, btn) {
+        const note = notes.find(n => n.id === id);
+        const text = `[${note.title}] (${note.date})\n${note.content}`;
+        navigator.clipboard.writeText(text).then(() => {
+            const originalText = btn.innerText;
+            btn.innerText = 'Copied!';
+            setTimeout(() => btn.innerText = originalText, 1500);
+        });
+    }
+
+    function deleteNote(id) {
+        if (confirm('Delete this thought?')) {
+            notes = notes.filter(n => n.id !== id);
+            localStorage.setItem('thoughtStack_data', JSON.stringify(notes));
+            renderNotes(searchInput.value);
+        }
+    }
+
+    function filterNotes() {
+        renderNotes(searchInput.value);
+    }
+
+    function showModal() { document.getElementById('modal').style.display = 'flex'; }
+    function hideModal() { document.getElementById('modal').style.display = 'none'; }
+
+    renderNotes();
+</script>
+
+</body>
+</html>
