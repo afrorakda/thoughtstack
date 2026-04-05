@@ -15,6 +15,7 @@
             --accent: #eee;
             --input-bg: #fafafa;
             --radius: 15px;
+            --gray-text: #bbb;
         }
 
         body {
@@ -34,6 +35,7 @@
             padding: 40px 20px;
             box-sizing: border-box;
             text-align: center;
+            transition: all 0.3s ease;
         }
 
         h1 { font-size: 1.8rem; font-weight: 800; margin-bottom: 8px; letter-spacing: -1px; }
@@ -44,9 +46,16 @@
             background: var(--input-bg);
             padding: 20px;
             border-radius: var(--radius);
-            margin-bottom: 40px;
+            margin-bottom: 30px;
             text-align: left;
+            transition: all 0.2s ease;
+            overflow: hidden;
         }
+        .searching .input-section, .searching h1, .searching .subtitle {
+            display: none;
+        }
+
+        .input-group { position: relative; margin-bottom: 12px; }
 
         input, textarea {
             width: 100%;
@@ -58,18 +67,45 @@
             color: var(--main) !important;
             box-sizing: border-box;
             outline: none;
-            margin-bottom: 12px;
-            padding: 12px;
+            padding: 12px 40px 12px 12px; /* clrボタン用に右パディング */
             -webkit-appearance: none;
             -webkit-text-fill-color: var(--main) !important;
             opacity: 1 !important;
         }
 
         textarea {
-            height: 160px; /* 約10行固定 */
+            height: 160px;
             resize: none;
             line-height: 1.5;
+            padding-right: 12px; /* textareaのclrは右上に配置 */
         }
+
+        input::placeholder, textarea::placeholder {
+            color: var(--gray-text) !important;
+            -webkit-text-fill-color: var(--gray-text) !important;
+        }
+
+        /* Clear Buttons */
+        .clr-btn {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 24px;
+            height: 24px;
+            background: var(--accent);
+            color: #999;
+            border-radius: 50%;
+            border: none;
+            font-size: 14px;
+            font-weight: 800;
+            cursor: pointer;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        .input-group.has-content .clr-btn { display: flex; }
+        .textarea-clr { top: 20px; transform: none; }
 
         .save-btn {
             width: 100%;
@@ -81,24 +117,24 @@
             font-weight: 800;
             font-size: 1rem;
             cursor: pointer;
-            transition: opacity 0.2s;
         }
-        .save-btn:active { opacity: 0.8; }
 
         /* Search Section */
         .search-container {
             position: relative;
             margin-bottom: 20px;
+            transition: transform 0.3s;
         }
+        .searching .search-container { margin-top: 10px; }
 
         .search-box {
             width: 100%;
-            padding: 12px 15px;
-            border: 1px solid var(--accent);
+            padding: 15px 45px 15px 15px;
+            border: 2px solid var(--accent);
             border-radius: var(--radius);
             background: #fff;
-            font-size: 0.9rem;
-            font-weight: 600;
+            font-size: 1rem;
+            font-weight: 700;
             box-sizing: border-box;
         }
 
@@ -108,6 +144,7 @@
             flex-direction: column;
             gap: 15px;
             text-align: left;
+            min-height: 200px;
         }
 
         .log-card {
@@ -117,7 +154,9 @@
             padding: 18px;
             position: relative;
             box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+            transition: all 0.3s ease;
         }
+        .log-card.copied { border-color: var(--main); background: #f9f9f9; transform: scale(1.02); }
 
         .log-date { font-size: 0.7rem; color: #aaa; font-weight: 700; text-transform: uppercase; margin-bottom: 5px; }
         .log-title { font-size: 1.1rem; font-weight: 800; margin-bottom: 8px; display: block; }
@@ -127,16 +166,24 @@
         .action-btn {
             background: var(--accent);
             border: none;
-            padding: 6px 12px;
+            padding: 8px 16px;
             border-radius: 10px;
-            font-size: 0.75rem;
+            font-size: 0.8rem;
             font-weight: 700;
             cursor: pointer;
             color: var(--main);
         }
-        .delete-btn { background: #fff; color: #fcc; border: 1px solid #fcc; }
+        .del-btn { 
+            background: transparent; 
+            color: #ddd; 
+            border: 1px solid #eee;
+            font-size: 0.7rem;
+        }
+        .del-btn:active { color: #f88; border-color: #f88; }
 
-        /* Footer & Common UI */
+        .empty-msg { padding: 40px 0; color: #ccc; font-weight: 600; font-size: 0.9rem; }
+
+        /* Footer & Common */
         footer { margin-top: 60px; font-size: 11px; color: #aaa; line-height: 1.8; }
         footer a { color: inherit; text-decoration: none; }
         .footer-btns { margin-top: 30px; }
@@ -164,18 +211,28 @@
 </head>
 <body>
 
-<div class="container">
+<div class="container" id="mainContainer">
     <h1>ThoughtStack</h1>
     <p class="subtitle">Quick log for books, movies, and ideas.</p>
 
     <div class="input-section">
-        <input type="text" id="noteTitle" placeholder="Title (Book, Movie, Project...)" maxlength="100">
-        <textarea id="noteContent" placeholder="Your thoughts... (Keep it short)"></textarea>
+        <div class="input-group" id="titleGroup">
+            <input type="text" id="noteTitle" placeholder="Title (Book, Movie, Idea...)" maxlength="100" oninput="toggleClr(this)">
+            <button class="clr-btn" onclick="clearInp('noteTitle')">×</button>
+        </div>
+        <div class="input-group" id="contentGroup">
+            <textarea id="noteContent" placeholder="Your thoughts... (Keep it short)" oninput="toggleClr(this)"></textarea>
+            <button class="clr-btn textarea-clr" onclick="clearInp('noteContent')">×</button>
+        </div>
         <button class="save-btn" onclick="saveNote()">Save Memory</button>
     </div>
 
     <div class="search-container">
-        <input type="text" class="search-box" id="searchInput" placeholder="Search logs..." oninput="filterNotes()">
+        <div class="input-group has-clr" id="searchGroup">
+            <input type="text" class="search-box" id="searchInput" placeholder="Search logs..." 
+                   onfocus="setSearching(true)" onblur="checkBlur(event)" oninput="filterNotes(); toggleClr(this)">
+            <button class="clr-btn" id="searchClr" onclick="clearSearch()">×</button>
+        </div>
     </div>
 
     <div class="log-list" id="logList"></div>
@@ -203,63 +260,104 @@
 
 <script>
     let notes = JSON.parse(localStorage.getItem('thoughtStack_data') || '[]');
-
-    const titleInput = document.getElementById('noteTitle');
-    const contentInput = document.getElementById('noteContent');
+    const container = document.getElementById('mainContainer');
     const logList = document.getElementById('logList');
-    const searchInput = document.getElementById('searchInput');
+
+    function toggleClr(el) {
+        const group = el.parentElement;
+        if (el.value.length > 0) group.classList.add('has-content');
+        else group.classList.remove('has-content');
+    }
+
+    function clearInp(id) {
+        const el = document.getElementById(id);
+        el.value = '';
+        el.parentElement.classList.remove('has-content');
+        el.focus();
+        if(id === 'searchInput') filterNotes();
+    }
+
+    function setSearching(isSearching) {
+        if (isSearching) container.classList.add('searching');
+        else if (!document.getElementById('searchInput').value) container.classList.remove('searching');
+    }
+
+    function checkBlur(e) {
+        // clrボタンをクリックした時はモード解除しない
+        if (e.relatedTarget && e.relatedTarget.classList.contains('clr-btn')) return;
+        setSearching(false);
+    }
+
+    function clearSearch() {
+        const el = document.getElementById('searchInput');
+        el.value = '';
+        el.parentElement.classList.remove('has-content');
+        filterNotes();
+        container.classList.remove('searching');
+    }
 
     function saveNote() {
-        const title = titleInput.value.trim();
-        const content = contentInput.value.trim();
-
-        if (!title && !content) return;
+        const tEl = document.getElementById('noteTitle');
+        const cEl = document.getElementById('noteContent');
+        if (!tEl.value.trim() && !cEl.value.trim()) return;
 
         const newNote = {
             id: Date.now(),
             date: new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: '2-digit' }),
-            title: title || 'Untitled',
-            content: content
+            title: tEl.value.trim() || 'Untitled',
+            content: cEl.value.trim()
         };
 
         notes.unshift(newNote);
         localStorage.setItem('thoughtStack_data', JSON.stringify(notes));
 
-        titleInput.value = '';
-        contentInput.value = '';
+        tEl.value = ''; cEl.value = '';
+        document.getElementById('titleGroup').classList.remove('has-content');
+        document.getElementById('contentGroup').classList.remove('has-content');
         renderNotes();
     }
 
-    function renderNotes(filter = '') {
+    function renderNotes() {
+        const query = document.getElementById('searchInput').value.toLowerCase();
         logList.innerHTML = '';
-        const filtered = notes.filter(n => 
-            n.title.toLowerCase().includes(filter.toLowerCase()) || 
-            n.content.toLowerCase().includes(filter.toLowerCase())
-        );
+        const filtered = notes.filter(n => n.title.toLowerCase().includes(query) || n.content.toLowerCase().includes(query));
+
+        if (filtered.length === 0) {
+            logList.innerHTML = `<div class="empty-msg">${query ? 'No results found.' : 'No memories stacked yet.'}</div>`;
+            return;
+        }
 
         filtered.forEach(note => {
             const card = document.createElement('div');
             card.className = 'log-card';
+            card.id = `card-${note.id}`;
             card.innerHTML = `
                 <div class="log-date">${note.date}</div>
                 <strong class="log-title">${note.title}</strong>
                 <div class="log-content">${note.content}</div>
                 <div class="card-actions">
-                    <button class="action-btn" onclick="copyNote(${note.id}, this)">Copy</button>
-                    <button class="action-btn delete-btn" onclick="deleteNote(${note.id})">Del</button>
+                    <button class="action-btn" onclick="copyNote(${note.id})">Copy</button>
+                    <button class="action-btn del-btn" onclick="deleteNote(${note.id})">Del</button>
                 </div>
             `;
             logList.appendChild(card);
         });
     }
 
-    function copyNote(id, btn) {
+    function copyNote(id) {
         const note = notes.find(n => n.id === id);
         const text = `[${note.title}] (${note.date})\n${note.content}`;
+        const card = document.getElementById(`card-${id}`);
+        
         navigator.clipboard.writeText(text).then(() => {
-            const originalText = btn.innerText;
+            card.classList.add('copied');
+            const btn = event.target;
+            const oldText = btn.innerText;
             btn.innerText = 'Copied!';
-            setTimeout(() => btn.innerText = originalText, 1500);
+            setTimeout(() => {
+                card.classList.remove('copied');
+                btn.innerText = oldText;
+            }, 1000);
         });
     }
 
@@ -267,14 +365,11 @@
         if (confirm('Delete this thought?')) {
             notes = notes.filter(n => n.id !== id);
             localStorage.setItem('thoughtStack_data', JSON.stringify(notes));
-            renderNotes(searchInput.value);
+            renderNotes();
         }
     }
 
-    function filterNotes() {
-        renderNotes(searchInput.value);
-    }
-
+    function filterNotes() { renderNotes(); }
     function showModal() { document.getElementById('modal').style.display = 'flex'; }
     function hideModal() { document.getElementById('modal').style.display = 'none'; }
 
